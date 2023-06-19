@@ -1,19 +1,15 @@
-{-# LANGUAGE OverloadedStrings #-}
 module Main where
 
-import           Data.Text  (Text)
-import           Web.Scotty
+import           Database.Persist.Sqlite
+import           Network.Wai.Handler.Warp              (run)
+import           Network.Wai.Middleware.ProblemDetails (problemDetails)
+
+import qualified Api.Scotty                            as Scotty
+import qualified Model.Todo                            as Todo
 
 main :: IO ()
-main = scotty 3000 $ do
-    delete "/todos/:id" $ do
-        undefined
+main = do
+    api <- Scotty.api
+    Todo.createTable
+    run 3000 $ problemDetails api
 
-    post "/todos" $ do
-        undefined
-
-    patch "/todos/:id" $ do
-        undefined
-
-    get "/todos" $ do
-        text "Hello, world!"

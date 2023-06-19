@@ -34,15 +34,20 @@ Todo
 
 instance ToJSON Todo
 
-createTable :: (MonadIO m) => m ()
-createTable = liftIO $ runSqlite ":memory:" $ runMigration migrateAll
+todoDbName :: Text
+todoDbName = "todo.db"
 
-create :: (MonadIO m) => Todo -> m TodoId
-create todo = liftIO $ runSqlite ":memory:" $ insert todo
+createTable :: (MonadIO m) => m ()
+createTable = liftIO $ runSqlite todoDbName $ runMigration migrateAll
+
+create :: (MonadIO m) => Text -> Bool -> m (TodoView (Key Todo))
+create content completed = do
+    todoId <- liftIO $ runSqlite todoDbName $ insert (Todo content completed)
+    return $ TodoView todoId content completed
 
 findAll :: (MonadIO m) => m [TodoView (Key Todo)]
 findAll = do
-    entities <- liftIO $ runSqlite ":memory:" $ selectList [] []
+    entities <- liftIO $ runSqlite todoDbName $ selectList [] []
     return $ map mkTodoView entities
     where
         mkTodoView entity =
@@ -52,11 +57,11 @@ findAll = do
                 TodoView todoId (todoContent todo) (todoCompleted todo)
 
 delete :: (MonadIO m) => Key Todo -> m ()
-delete todoId = liftIO $ runSqlite ":memory:" $ Persist.delete todoId
+delete todoId = liftIO $ runSqlite todoDbName $ Persist.delete todoId
 
 updateContent :: (MonadIO m) => Key Todo -> Text -> m (TodoView (Key Todo))
 updateContent todoId newContent = do
-    newTodo <- liftIO $ runSqlite ":memory:" $ updateGet todoId [TodoContent =. newContent]
+    newTodo <- liftIO $ runSqlite todoDbName $ updateGet todoId [TodoContent =. newContent]
     return $ TodoView
                 todoId
                 (todoContent newTodo)
@@ -64,7 +69,7 @@ updateContent todoId newContent = do
 
 updateCompleted :: (MonadIO m) => Key Todo -> Bool -> m (TodoView (Key Todo))
 updateCompleted todoId newCompleted = do
-    newTodo <- liftIO $ runSqlite ":memory:" $ updateGet todoId [TodoCompleted =. newCompleted]
+    newTodo <- liftIO $ runSqlite todoDbName $ updateGet todoId [TodoCompleted =. newCompleted]
     return $ TodoView
                 todoId
                 (todoContent newTodo)

@@ -14,6 +14,7 @@ executable todomvc
     main-is:          Main.hs
     other-modules:    Contracts.Todo
                     , Model.Todo
+                    , Api.Scotty
     build-depends:    base ^>=4.16.4.0
                     , scotty
                     , text
@@ -24,5 +25,7 @@ executable todomvc
                     , deriving-aeson
                     , persistent
                     , persistent-sqlite
+                    , http-types
+                    , exceptions
     hs-source-dirs:   app
     default-language: Haskell2010
