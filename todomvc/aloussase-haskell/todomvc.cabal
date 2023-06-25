@@ -1,34 +1,41 @@
-cabal-version:      2.4
-name:               todomvc
-version:            0.1.0.0
+cabal-version: 2.4
+name:          todomvc
+version:       0.1.0.0
+
 -- synopsis:
 -- description:
 -- bug-reports:
 -- license:
-author:             Alexander Goussas
-maintainer:         goussasalexander@gmail.com
+author:        Alexander Goussas
+maintainer:    goussasalexander@gmail.com
+
 -- copyright:
 -- category:
 
 executable todomvc
-    main-is:          Main.hs
-    other-modules:    Contracts.Todo
-                    , Model.Todo
-                    , Api.Scotty
-                    , Api.Servant
-    build-depends:    base ^>=4.16.4.0
-                    , scotty
-                    , text
-                    , aeson
-                    , wai
-                    , warp
-                    , wai-problem-details
-                    , deriving-aeson
-                    , persistent
-                    , persistent-sqlite
-                    , http-types
-                    , exceptions
-                    , servant
-                    , servant-server
-    hs-source-dirs:   app
-    default-language: Haskell2010
+  main-is:          Main.hs
+  other-modules:
+    Api.Scotty
+    Api.Servant
+    Contracts.Todo
+    Model.Todo
+
+  build-depends:
+    , aeson
+    , base                   ^>=4.16.4.0
+    , deriving-aeson
+    , exceptions
+    , http-types
+    , persistent
+    , persistent-sqlite
+    , scotty
+    , servant
+    , servant-server
+    , text
+    , wai
+    , wai-middleware-static
+    , wai-problem-details
+    , warp
+
+  hs-source-dirs:   app
+  default-language: Haskell2010
