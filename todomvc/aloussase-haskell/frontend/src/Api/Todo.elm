@@ -48,3 +48,16 @@ complete todoId completed =
         , timeout = Nothing
         , tracker = Nothing
         }
+
+
+updateContent : Int -> String -> Cmd Msg
+updateContent todoId newContent =
+    Http.request
+        { method = "PATCH"
+        , headers = []
+        , url = "/todos/" ++ String.fromInt todoId
+        , body = Http.jsonBody (E.object [ ( "content", E.string newContent ) ])
+        , expect = Http.expectWhatever (ContentUpdated newContent)
+        , timeout = Nothing
+        , tracker = Nothing
+        }

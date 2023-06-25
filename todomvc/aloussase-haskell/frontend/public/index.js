@@ -5334,6 +5334,7 @@ var $elm$core$Task$perform = F2(
 				A2($elm$core$Task$map, toMessage, task)));
 	});
 var $elm$browser$Browser$element = _Browser_element;
+var $author$project$Main$Normal = {$: 'Normal'};
 var $author$project$Msg$GotTodos = function (a) {
 	return {$: 'GotTodos', a: a};
 };
@@ -6149,13 +6150,16 @@ var $author$project$Api$Todo$getAll = $elm$http$Http$get(
 		url: '/todos'
 	});
 var $author$project$Main$init = function (_v0) {
-	var initialState = {editingTodoId: $elm$core$Maybe$Nothing, editingTodoText: $elm$core$Maybe$Nothing, errMsg: $elm$core$Maybe$Nothing, newTodoContent: '', todos: _List_Nil};
+	var initialState = {errMsg: $elm$core$Maybe$Nothing, newTodoContent: '', state: $author$project$Main$Normal, todos: _List_Nil};
 	return _Utils_Tuple2(initialState, $author$project$Api$Todo$getAll);
 };
 var $elm$core$Platform$Sub$batch = _Platform_batch;
 var $elm$core$Platform$Sub$none = $elm$core$Platform$Sub$batch(_List_Nil);
 var $author$project$Main$subscriptions = function (_v0) {
 	return $elm$core$Platform$Sub$none;
+};
+var $author$project$Main$Editing = function (a) {
+	return {$: 'Editing', a: a};
 };
 var $author$project$Msg$CompletedTodo = F3(
 	function (a, b, c) {
@@ -6270,155 +6274,272 @@ var $elm$core$List$filter = F2(
 			_List_Nil,
 			list);
 	});
+var $elm$core$List$head = function (list) {
+	if (list.b) {
+		var x = list.a;
+		var xs = list.b;
+		return $elm$core$Maybe$Just(x);
+	} else {
+		return $elm$core$Maybe$Nothing;
+	}
+};
+var $elm$core$Maybe$map = F2(
+	function (f, maybe) {
+		if (maybe.$ === 'Just') {
+			var value = maybe.a;
+			return $elm$core$Maybe$Just(
+				f(value));
+		} else {
+			return $elm$core$Maybe$Nothing;
+		}
+	});
 var $elm$core$Basics$neq = _Utils_notEqual;
 var $elm$core$Platform$Cmd$batch = _Platform_batch;
 var $elm$core$Platform$Cmd$none = $elm$core$Platform$Cmd$batch(_List_Nil);
-var $author$project$Main$update = F2(
-	function (msg, model) {
-		switch (msg.$) {
-			case 'GotTodos':
-				if (msg.a.$ === 'Ok') {
-					var todos = msg.a.a;
-					return _Utils_Tuple2(
-						_Utils_update(
-							model,
-							{todos: todos}),
-						$elm$core$Platform$Cmd$none);
-				} else {
-					return _Utils_Tuple2(
-						_Utils_update(
-							model,
-							{
-								errMsg: $elm$core$Maybe$Just('Failed to retrieve ToDo\'s')
-							}),
-						$elm$core$Platform$Cmd$none);
-				}
-			case 'GotInput':
-				var input = msg.a;
-				return _Utils_Tuple2(
-					_Utils_update(
-						model,
-						{newTodoContent: input}),
-					$elm$core$Platform$Cmd$none);
-			case 'CreateTodo':
-				return $elm$core$String$isEmpty(model.newTodoContent) ? _Utils_Tuple2(model, $elm$core$Platform$Cmd$none) : _Utils_Tuple2(
-					model,
-					$author$project$Api$Todo$create(model.newTodoContent));
-			case 'CreatedTodo':
-				if (msg.a.$ === 'Ok') {
-					var todo = msg.a.a;
-					return _Utils_Tuple2(
-						_Utils_update(
-							model,
-							{
-								newTodoContent: '',
-								todos: A2($elm$core$List$cons, todo, model.todos)
-							}),
-						$elm$core$Platform$Cmd$none);
-				} else {
-					return _Utils_Tuple2(
-						_Utils_update(
-							model,
-							{
-								errMsg: $elm$core$Maybe$Just('Failed to create ToDo')
-							}),
-						$elm$core$Platform$Cmd$none);
-				}
-			case 'DeleteTodo':
-				var todoId = msg.a;
-				return _Utils_Tuple2(
-					model,
-					$author$project$Api$Todo$delete(todoId));
-			case 'DeletedTodo':
-				if (msg.b.$ === 'Ok') {
-					var todoId = msg.a;
-					return _Utils_Tuple2(
-						_Utils_update(
-							model,
-							{
-								todos: A2(
-									$elm$core$List$filter,
-									function (todo) {
-										return !_Utils_eq(todo.id, todoId);
-									},
-									model.todos)
-							}),
-						$elm$core$Platform$Cmd$none);
-				} else {
-					return _Utils_Tuple2(
-						_Utils_update(
-							model,
-							{
-								errMsg: $elm$core$Maybe$Just('Failed to delete ToDo')
-							}),
-						$elm$core$Platform$Cmd$none);
-				}
-			case 'EditTodo':
-				var todoId = msg.a;
-				return _Utils_Tuple2(
-					_Utils_update(
-						model,
-						{
-							editingTodoId: $elm$core$Maybe$Just(todoId)
-						}),
-					$elm$core$Platform$Cmd$none);
-			case 'SetEditingTodoText':
-				var newText = msg.a;
-				return _Utils_Tuple2(
-					_Utils_update(
-						model,
-						{
-							editingTodoText: $elm$core$Maybe$Just(newText)
-						}),
-					$elm$core$Platform$Cmd$none);
-			case 'StopEditingTodo':
-				var _v1 = _Utils_Tuple2(model.editingTodoId, model.editingTodoText);
-				if ((_v1.a.$ === 'Just') && (_v1.b.$ === 'Just')) {
-					var todoId = _v1.a.a;
-					var todoText = _v1.b.a;
-					return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
-				} else {
-					return _Utils_Tuple2(
-						_Utils_update(
-							model,
-							{editingTodoId: $elm$core$Maybe$Nothing, editingTodoText: $elm$core$Maybe$Nothing}),
-						$elm$core$Platform$Cmd$none);
-				}
-			case 'CompleteTodo':
-				var todoId = msg.a;
-				var completed = msg.b;
-				return _Utils_Tuple2(
-					model,
-					A2($author$project$Api$Todo$complete, todoId, completed));
-			default:
-				if (msg.c.$ === 'Err') {
-					return _Utils_Tuple2(
-						_Utils_update(
-							model,
-							{
-								errMsg: $elm$core$Maybe$Just('Failed to complete todo')
-							}),
-						$elm$core$Platform$Cmd$none);
-				} else {
-					var todoId = msg.a;
-					var completed = msg.b;
-					var newTodos = A2(
-						$elm$core$List$map,
-						function (todo) {
-							return _Utils_eq(todo.id, todoId) ? _Utils_update(
-								todo,
-								{completed: completed}) : todo;
-						},
-						model.todos);
-					return _Utils_Tuple2(
-						_Utils_update(
-							model,
-							{todos: newTodos}),
-						$elm$core$Platform$Cmd$none);
-				}
+var $author$project$Msg$ContentUpdated = F2(
+	function (a, b) {
+		return {$: 'ContentUpdated', a: a, b: b};
+	});
+var $author$project$Api$Todo$updateContent = F2(
+	function (todoId, newContent) {
+		return $elm$http$Http$request(
+			{
+				body: $elm$http$Http$jsonBody(
+					$elm$json$Json$Encode$object(
+						_List_fromArray(
+							[
+								_Utils_Tuple2(
+								'content',
+								$elm$json$Json$Encode$string(newContent))
+							]))),
+				expect: $elm$http$Http$expectWhatever(
+					$author$project$Msg$ContentUpdated(newContent)),
+				headers: _List_Nil,
+				method: 'PATCH',
+				timeout: $elm$core$Maybe$Nothing,
+				tracker: $elm$core$Maybe$Nothing,
+				url: '/todos/' + $elm$core$String$fromInt(todoId)
+			});
+	});
+var $elm$core$Maybe$withDefault = F2(
+	function (_default, maybe) {
+		if (maybe.$ === 'Just') {
+			var value = maybe.a;
+			return value;
+		} else {
+			return _default;
 		}
 	});
-var $author$project$Msg$CreateTodo = {$: 'CreateTodo'};
+var $author$project$Main$update = F2(
+	function (msg, model) {
+		var _v0 = _Utils_Tuple2(model.state, msg);
+		_v0$15:
+		while (true) {
+			switch (_v0.b.$) {
+				case 'GotTodos':
+					if (_v0.b.a.$ === 'Ok') {
+						var todos = _v0.b.a.a;
+						return _Utils_Tuple2(
+							_Utils_update(
+								model,
+								{todos: todos}),
+							$elm$core$Platform$Cmd$none);
+					} else {
+						return _Utils_Tuple2(
+							_Utils_update(
+								model,
+								{
+									errMsg: $elm$core$Maybe$Just('Failed to retrieve ToDo\'s')
+								}),
+							$elm$core$Platform$Cmd$none);
+					}
+				case 'GotInput':
+					var input = _v0.b.a;
+					return _Utils_Tuple2(
+						_Utils_update(
+							model,
+							{newTodoContent: input}),
+						$elm$core$Platform$Cmd$none);
+				case 'CreateTodo':
+					if (_v0.a.$ === 'Normal') {
+						var _v1 = _v0.a;
+						var _v2 = _v0.b;
+						return $elm$core$String$isEmpty(model.newTodoContent) ? _Utils_Tuple2(model, $elm$core$Platform$Cmd$none) : _Utils_Tuple2(
+							model,
+							$author$project$Api$Todo$create(model.newTodoContent));
+					} else {
+						break _v0$15;
+					}
+				case 'CreatedTodo':
+					if (_v0.a.$ === 'Normal') {
+						if (_v0.b.a.$ === 'Ok') {
+							var _v3 = _v0.a;
+							var todo = _v0.b.a.a;
+							return _Utils_Tuple2(
+								_Utils_update(
+									model,
+									{
+										newTodoContent: '',
+										todos: A2($elm$core$List$cons, todo, model.todos)
+									}),
+								$elm$core$Platform$Cmd$none);
+						} else {
+							var _v4 = _v0.a;
+							return _Utils_Tuple2(
+								_Utils_update(
+									model,
+									{
+										errMsg: $elm$core$Maybe$Just('Failed to create ToDo')
+									}),
+								$elm$core$Platform$Cmd$none);
+						}
+					} else {
+						break _v0$15;
+					}
+				case 'DeleteTodo':
+					if (_v0.a.$ === 'Normal') {
+						var _v5 = _v0.a;
+						var todoId = _v0.b.a;
+						return _Utils_Tuple2(
+							model,
+							$author$project$Api$Todo$delete(todoId));
+					} else {
+						break _v0$15;
+					}
+				case 'DeletedTodo':
+					if (_v0.a.$ === 'Normal') {
+						if (_v0.b.b.$ === 'Ok') {
+							var _v6 = _v0.a;
+							var _v7 = _v0.b;
+							var todoId = _v7.a;
+							return _Utils_Tuple2(
+								_Utils_update(
+									model,
+									{
+										todos: A2(
+											$elm$core$List$filter,
+											function (todo) {
+												return !_Utils_eq(todo.id, todoId);
+											},
+											model.todos)
+									}),
+								$elm$core$Platform$Cmd$none);
+						} else {
+							var _v8 = _v0.a;
+							var _v9 = _v0.b;
+							return _Utils_Tuple2(
+								_Utils_update(
+									model,
+									{
+										errMsg: $elm$core$Maybe$Just('Failed to delete ToDo')
+									}),
+								$elm$core$Platform$Cmd$none);
+						}
+					} else {
+						break _v0$15;
+					}
+				case 'CompleteTodo':
+					var _v10 = _v0.b;
+					var todoId = _v10.a;
+					var completed = _v10.b;
+					return _Utils_Tuple2(
+						model,
+						A2($author$project$Api$Todo$complete, todoId, completed));
+				case 'CompletedTodo':
+					if (_v0.b.c.$ === 'Err') {
+						var _v11 = _v0.b;
+						return _Utils_Tuple2(
+							_Utils_update(
+								model,
+								{
+									errMsg: $elm$core$Maybe$Just('Failed to complete todo')
+								}),
+							$elm$core$Platform$Cmd$none);
+					} else {
+						var _v12 = _v0.b;
+						var todoId = _v12.a;
+						var completed = _v12.b;
+						var newTodos = A2(
+							$elm$core$List$map,
+							function (todo) {
+								return _Utils_eq(todo.id, todoId) ? _Utils_update(
+									todo,
+									{completed: completed}) : todo;
+							},
+							model.todos);
+						return _Utils_Tuple2(
+							_Utils_update(
+								model,
+								{todos: newTodos}),
+							$elm$core$Platform$Cmd$none);
+					}
+				case 'EditTodo':
+					if (_v0.a.$ === 'Normal') {
+						var _v13 = _v0.a;
+						var todoId = _v0.b.a;
+						return _Utils_Tuple2(
+							_Utils_update(
+								model,
+								{
+									newTodoContent: A2(
+										$elm$core$Maybe$withDefault,
+										'',
+										A2(
+											$elm$core$Maybe$map,
+											function (todo) {
+												return todo.content;
+											},
+											$elm$core$List$head(
+												A2(
+													$elm$core$List$filter,
+													function (todo) {
+														return _Utils_eq(todo.id, todoId);
+													},
+													model.todos)))),
+									state: $author$project$Main$Editing(todoId)
+								}),
+							$elm$core$Platform$Cmd$none);
+					} else {
+						break _v0$15;
+					}
+				case 'UpdateTodoContent':
+					if (_v0.a.$ === 'Editing') {
+						var todoId = _v0.a.a;
+						var _v14 = _v0.b;
+						return _Utils_Tuple2(
+							model,
+							A2($author$project$Api$Todo$updateContent, todoId, model.newTodoContent));
+					} else {
+						break _v0$15;
+					}
+				default:
+					if ((_v0.a.$ === 'Editing') && (_v0.b.b.$ === 'Ok')) {
+						var todoId = _v0.a.a;
+						var _v15 = _v0.b;
+						var newContent = _v15.a;
+						return _Utils_Tuple2(
+							_Utils_update(
+								model,
+								{
+									newTodoContent: '',
+									state: $author$project$Main$Normal,
+									todos: A2(
+										$elm$core$List$map,
+										function (todo) {
+											return _Utils_eq(todo.id, todoId) ? _Utils_update(
+												todo,
+												{content: newContent}) : todo;
+										},
+										model.todos)
+								}),
+							$elm$core$Platform$Cmd$none);
+					} else {
+						break _v0$15;
+					}
+			}
+		}
+		return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
+	});
 var $author$project$Msg$GotInput = function (a) {
 	return {$: 'GotInput', a: a};
 };
@@ -6433,20 +6554,14 @@ var $elm$html$Html$Attributes$class = $elm$html$Html$Attributes$stringProperty('
 var $elm$html$Html$div = _VirtualDom_node('div');
 var $elm$html$Html$h1 = _VirtualDom_node('h1');
 var $elm$html$Html$input = _VirtualDom_node('input');
-var $author$project$Main$isTodoEditing = F2(
-	function (todo, editingTodoId) {
-		return _Utils_eq(todo.id, editingTodoId);
-	});
-var $elm$core$Maybe$map = F2(
-	function (f, maybe) {
-		if (maybe.$ === 'Just') {
-			var value = maybe.a;
-			return $elm$core$Maybe$Just(
-				f(value));
-		} else {
-			return $elm$core$Maybe$Nothing;
-		}
-	});
+var $author$project$Main$inputPlaceholder = function (model) {
+	var _v0 = model.state;
+	if (_v0.$ === 'Normal') {
+		return 'New todo';
+	} else {
+		return 'Edit todo';
+	}
+};
 var $elm$virtual_dom$VirtualDom$Normal = function (a) {
 	return {$: 'Normal', a: a};
 };
@@ -6496,6 +6611,24 @@ var $elm$html$Html$Events$onInput = function (tagger) {
 			A2($elm$json$Json$Decode$map, tagger, $elm$html$Html$Events$targetValue)));
 };
 var $elm$html$Html$Attributes$placeholder = $elm$html$Html$Attributes$stringProperty('placeholder');
+var $author$project$Msg$CreateTodo = {$: 'CreateTodo'};
+var $author$project$Msg$UpdateTodoContent = {$: 'UpdateTodoContent'};
+var $author$project$Main$submitClickEvent = function (model) {
+	var _v0 = model.state;
+	if (_v0.$ === 'Normal') {
+		return $author$project$Msg$CreateTodo;
+	} else {
+		return $author$project$Msg$UpdateTodoContent;
+	}
+};
+var $author$project$Main$submitValue = function (model) {
+	var _v0 = model.state;
+	if (_v0.$ === 'Normal') {
+		return 'Create';
+	} else {
+		return 'Update';
+	}
+};
 var $elm$virtual_dom$VirtualDom$text = _VirtualDom_text;
 var $elm$html$Html$text = $elm$virtual_dom$VirtualDom$text;
 var $elm$html$Html$Attributes$type_ = $elm$html$Html$Attributes$stringProperty('type');
@@ -6522,15 +6655,6 @@ var $author$project$Main$isJust = function (m) {
 		return false;
 	}
 };
-var $elm$core$Maybe$withDefault = F2(
-	function (_default, maybe) {
-		if (maybe.$ === 'Just') {
-			var value = maybe.a;
-			return value;
-		} else {
-			return _default;
-		}
-	});
 var $author$project$Main$viewErrMsg = function (errMsg) {
 	return A2(
 		$elm$html$Html$div,
@@ -6560,10 +6684,6 @@ var $author$project$Msg$DeleteTodo = function (a) {
 var $author$project$Msg$EditTodo = function (a) {
 	return {$: 'EditTodo', a: a};
 };
-var $author$project$Msg$SetEditingTodoText = function (a) {
-	return {$: 'SetEditingTodoText', a: a};
-};
-var $author$project$Msg$StopEditingTodo = {$: 'StopEditingTodo'};
 var $elm$html$Html$Attributes$boolProperty = F2(
 	function (key, bool) {
 		return A2(
@@ -6575,13 +6695,6 @@ var $elm$html$Html$Attributes$checked = $elm$html$Html$Attributes$boolProperty('
 var $elm$html$Html$Attributes$disabled = $elm$html$Html$Attributes$boolProperty('disabled');
 var $elm$html$Html$i = _VirtualDom_node('i');
 var $elm$html$Html$li = _VirtualDom_node('li');
-var $elm$core$Basics$not = _Basics_not;
-var $elm$html$Html$Events$onBlur = function (msg) {
-	return A2(
-		$elm$html$Html$Events$on,
-		'blur',
-		$elm$json$Json$Decode$succeed(msg));
-};
 var $elm$html$Html$Events$targetChecked = A2(
 	$elm$json$Json$Decode$at,
 	_List_fromArray(
@@ -6593,76 +6706,83 @@ var $elm$html$Html$Events$onCheck = function (tagger) {
 		'change',
 		A2($elm$json$Json$Decode$map, tagger, $elm$html$Html$Events$targetChecked));
 };
-var $elm$html$Html$Events$onDoubleClick = function (msg) {
-	return A2(
-		$elm$html$Html$Events$on,
-		'dblclick',
-		$elm$json$Json$Decode$succeed(msg));
-};
 var $elm$html$Html$span = _VirtualDom_node('span');
-var $author$project$Main$viewTodo = F2(
-	function (todo, editing) {
-		return A2(
-			$elm$html$Html$li,
-			_List_fromArray(
-				[
-					$elm$html$Html$Attributes$class('todo'),
-					$elm$html$Html$Events$onDoubleClick(
-					$author$project$Msg$EditTodo(todo.id)),
-					$elm$html$Html$Events$onBlur($author$project$Msg$StopEditingTodo)
-				]),
-			_List_fromArray(
-				[
-					A2(
-					$elm$html$Html$input,
-					_List_fromArray(
-						[
-							$elm$html$Html$Attributes$type_('checkbox'),
-							$elm$html$Html$Attributes$checked(todo.completed),
-							$elm$html$Html$Events$onCheck(
-							$author$project$Msg$CompleteTodo(todo.id))
-						]),
-					_List_Nil),
-					A2(
-					$elm$html$Html$input,
-					_List_fromArray(
-						[
-							$elm$html$Html$Attributes$type_('text'),
-							$elm$html$Html$Attributes$value(todo.content),
-							$elm$html$Html$Attributes$class('todo-content'),
-							$elm$html$Html$Attributes$disabled(!editing),
-							$elm$html$Html$Events$onInput($author$project$Msg$SetEditingTodoText)
-						]),
-					_List_Nil),
-					A2(
-					$elm$html$Html$div,
-					_List_fromArray(
-						[
-							$elm$html$Html$Attributes$class('todo-actions')
-						]),
-					_List_fromArray(
-						[
-							A2(
-							$elm$html$Html$span,
-							_List_fromArray(
-								[
-									$elm$html$Html$Attributes$class('delete-todo'),
-									$elm$html$Html$Events$onClick(
-									$author$project$Msg$DeleteTodo(todo.id))
-								]),
-							_List_fromArray(
-								[
-									A2(
-									$elm$html$Html$i,
-									_List_fromArray(
-										[
-											$elm$html$Html$Attributes$class('fa fa-times')
-										]),
-									_List_Nil)
-								]))
-						]))
-				]));
-	});
+var $author$project$Main$viewTodo = function (todo) {
+	return A2(
+		$elm$html$Html$li,
+		_List_fromArray(
+			[
+				$elm$html$Html$Attributes$class('todo')
+			]),
+		_List_fromArray(
+			[
+				A2(
+				$elm$html$Html$input,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$type_('checkbox'),
+						$elm$html$Html$Attributes$checked(todo.completed),
+						$elm$html$Html$Events$onCheck(
+						$author$project$Msg$CompleteTodo(todo.id))
+					]),
+				_List_Nil),
+				A2(
+				$elm$html$Html$input,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$type_('text'),
+						$elm$html$Html$Attributes$value(todo.content),
+						$elm$html$Html$Attributes$class('todo-content'),
+						$elm$html$Html$Attributes$disabled(true)
+					]),
+				_List_Nil),
+				A2(
+				$elm$html$Html$div,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$class('todo-actions')
+					]),
+				_List_fromArray(
+					[
+						A2(
+						$elm$html$Html$span,
+						_List_fromArray(
+							[
+								$elm$html$Html$Attributes$class('edit-todo'),
+								$elm$html$Html$Events$onClick(
+								$author$project$Msg$EditTodo(todo.id))
+							]),
+						_List_fromArray(
+							[
+								A2(
+								$elm$html$Html$i,
+								_List_fromArray(
+									[
+										$elm$html$Html$Attributes$class('fa fa-pencil')
+									]),
+								_List_Nil)
+							])),
+						A2(
+						$elm$html$Html$span,
+						_List_fromArray(
+							[
+								$elm$html$Html$Attributes$class('delete-todo'),
+								$elm$html$Html$Events$onClick(
+								$author$project$Msg$DeleteTodo(todo.id))
+							]),
+						_List_fromArray(
+							[
+								A2(
+								$elm$html$Html$i,
+								_List_fromArray(
+									[
+										$elm$html$Html$Attributes$class('fa fa-times')
+									]),
+								_List_Nil)
+							]))
+					]))
+			]));
+};
 var $author$project$Main$view = function (model) {
 	return A2(
 		$elm$html$Html$div,
@@ -6690,7 +6810,8 @@ var $author$project$Main$view = function (model) {
 						_List_fromArray(
 							[
 								$elm$html$Html$Attributes$type_('text'),
-								$elm$html$Html$Attributes$placeholder('New todo'),
+								$elm$html$Html$Attributes$placeholder(
+								$author$project$Main$inputPlaceholder(model)),
 								$elm$html$Html$Events$onInput($author$project$Msg$GotInput),
 								$elm$html$Html$Attributes$value(model.newTodoContent)
 							]),
@@ -6700,8 +6821,10 @@ var $author$project$Main$view = function (model) {
 						_List_fromArray(
 							[
 								$elm$html$Html$Attributes$type_('submit'),
-								$elm$html$Html$Attributes$value('Create'),
-								$elm$html$Html$Events$onClick($author$project$Msg$CreateTodo)
+								$elm$html$Html$Attributes$value(
+								$author$project$Main$submitValue(model)),
+								$elm$html$Html$Events$onClick(
+								$author$project$Main$submitClickEvent(model))
 							]),
 						_List_Nil)
 					])),
@@ -6711,21 +6834,7 @@ var $author$project$Main$view = function (model) {
 					[
 						$elm$html$Html$Attributes$class('todos')
 					]),
-				A2(
-					$elm$core$List$map,
-					function (todo) {
-						return A2(
-							$author$project$Main$viewTodo,
-							todo,
-							A2(
-								$elm$core$Maybe$withDefault,
-								false,
-								A2(
-									$elm$core$Maybe$map,
-									$author$project$Main$isTodoEditing(todo),
-									model.editingTodoId)));
-					},
-					model.todos))
+				A2($elm$core$List$map, $author$project$Main$viewTodo, model.todos))
 			]));
 };
 var $author$project$Main$main = $elm$browser$Browser$element(

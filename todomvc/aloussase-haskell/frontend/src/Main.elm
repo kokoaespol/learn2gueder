@@ -9,10 +9,16 @@ import Model.Todo exposing (Todo)
 import Msg exposing (..)
 
 
+type State
+    = Normal
+    | Editing Int
+
+
 type alias Model =
     { todos : List Todo
     , errMsg : Maybe String
     , newTodoContent : String
+    , state : State
     }
 
 
@@ -33,6 +39,7 @@ init _ =
             { todos = []
             , errMsg = Nothing
             , newTodoContent = ""
+            , state = Normal
             }
     in
     ( initialState, Api.Todo.getAll )
@@ -44,11 +51,52 @@ view model =
         [ h1 [] [ text "TodoMVC" ]
         , viewErrMsg model.errMsg
         , div [ class "create-todo" ]
-            [ input [ type_ "text", placeholder "New todo", E.onInput GotInput, value model.newTodoContent ] []
-            , input [ type_ "submit", value "Create", E.onClick CreateTodo ] []
+            [ input
+                [ type_ "text"
+                , placeholder (inputPlaceholder model)
+                , E.onInput GotInput
+                , value model.newTodoContent
+                ]
+                []
+            , input
+                [ type_ "submit"
+                , value (submitValue model)
+                , E.onClick (submitClickEvent model)
+                ]
+                []
             ]
         , ul [ class "todos" ] (List.map viewTodo model.todos)
         ]
+
+
+submitValue : Model -> String
+submitValue model =
+    case model.state of
+        Normal ->
+            "Create"
+
+        Editing _ ->
+            "Update"
+
+
+submitClickEvent : Model -> Msg
+submitClickEvent model =
+    case model.state of
+        Normal ->
+            CreateTodo
+
+        Editing _ ->
+            UpdateTodoContent
+
+
+inputPlaceholder : Model -> String
+inputPlaceholder model =
+    case model.state of
+        Normal ->
+            "New todo"
+
+        Editing _ ->
+            "Edit todo"
 
 
 viewErrMsg : Maybe String -> Html Msg
@@ -80,6 +128,9 @@ viewTodo todo =
             []
         , div [ class "todo-actions" ]
             [ span
+                [ class "edit-todo", E.onClick (EditTodo todo.id) ]
+                [ i [ class "fa fa-pencil" ] [] ]
+            , span
                 [ class "delete-todo", E.onClick (DeleteTodo todo.id) ]
                 [ i [ class "fa fa-times" ] [] ]
             ]
@@ -88,49 +139,49 @@ viewTodo todo =
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-    case msg of
-        GotTodos (Ok todos) ->
+    case ( model.state, msg ) of
+        ( _, GotTodos (Ok todos) ) ->
             ( { model | todos = todos }, Cmd.none )
 
-        GotTodos (Err _) ->
+        ( _, GotTodos (Err _) ) ->
             ( { model | errMsg = Just "Failed to retrieve ToDo's" }, Cmd.none )
 
-        GotInput input ->
+        ( _, GotInput input ) ->
             ( { model | newTodoContent = input }, Cmd.none )
 
-        CreateTodo ->
+        ( Normal, CreateTodo ) ->
             if String.isEmpty model.newTodoContent then
                 ( model, Cmd.none )
 
             else
                 ( model, Api.Todo.create model.newTodoContent )
 
-        CreatedTodo (Ok todo) ->
+        ( Normal, CreatedTodo (Ok todo) ) ->
             ( { model | todos = todo :: model.todos, newTodoContent = "" }, Cmd.none )
 
-        CreatedTodo (Err _) ->
+        ( Normal, CreatedTodo (Err _) ) ->
             ( { model | errMsg = Just "Failed to create ToDo" }, Cmd.none )
 
-        DeleteTodo todoId ->
+        ( Normal, DeleteTodo todoId ) ->
             ( model, Api.Todo.delete todoId )
 
-        DeletedTodo todoId (Ok _) ->
+        ( Normal, DeletedTodo todoId (Ok _) ) ->
             ( { model
                 | todos = List.filter (\todo -> todo.id /= todoId) model.todos
               }
             , Cmd.none
             )
 
-        DeletedTodo _ (Err _) ->
+        ( Normal, DeletedTodo _ (Err _) ) ->
             ( { model | errMsg = Just "Failed to delete ToDo" }, Cmd.none )
 
-        CompleteTodo todoId completed ->
+        ( _, CompleteTodo todoId completed ) ->
             ( model, Api.Todo.complete todoId completed )
 
-        CompletedTodo _ _ (Err _) ->
+        ( _, CompletedTodo _ _ (Err _) ) ->
             ( { model | errMsg = Just "Failed to complete todo" }, Cmd.none )
 
-        CompletedTodo todoId completed (Ok _) ->
+        ( _, CompletedTodo todoId completed (Ok _) ) ->
             let
                 newTodos =
                     List.map
@@ -144,6 +195,42 @@ update msg model =
                         model.todos
             in
             ( { model | todos = newTodos }, Cmd.none )
+
+        ( Normal, EditTodo todoId ) ->
+            ( { model
+                | state = Editing todoId
+                , newTodoContent =
+                    List.filter (\todo -> todo.id == todoId) model.todos
+                        |> List.head
+                        |> Maybe.map (\todo -> todo.content)
+                        |> Maybe.withDefault ""
+              }
+            , Cmd.none
+            )
+
+        ( Editing todoId, UpdateTodoContent ) ->
+            ( model, Api.Todo.updateContent todoId model.newTodoContent )
+
+        ( Editing todoId, ContentUpdated newContent (Ok _) ) ->
+            ( { model
+                | state = Normal
+                , newTodoContent = ""
+                , todos =
+                    List.map
+                        (\todo ->
+                            if todo.id == todoId then
+                                { todo | content = newContent }
+
+                            else
+                                todo
+                        )
+                        model.todos
+              }
+            , Cmd.none
+            )
+
+        _ ->
+            ( model, Cmd.none )
 
 
 subscriptions : Model -> Sub Msg

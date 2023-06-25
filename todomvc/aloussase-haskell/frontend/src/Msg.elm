@@ -13,3 +13,6 @@ type Msg
     | DeletedTodo Int (Result Http.Error ())
     | CompleteTodo Int Bool
     | CompletedTodo Int Bool (Result Http.Error ())
+    | EditTodo Int
+    | UpdateTodoContent
+    | ContentUpdated String (Result Http.Error ())
